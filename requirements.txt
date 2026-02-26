@@ -1,0 +1,4 @@
+numpy
+nexcsi
+pyqtgraph
+PyQt6
