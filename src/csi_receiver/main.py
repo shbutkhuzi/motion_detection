@@ -11,6 +11,8 @@ from .workers import WORKERS, SENTINEL
 
 def _run_worker(worker_cls, queue: mp.Queue) -> None:
     """Entry point for worker process."""
+    sys.stdout = os.fdopen(sys.stdout.fileno(), "w", buffering=1, closefd=False)
+    sys.stderr = os.fdopen(sys.stderr.fileno(), "w", buffering=1, closefd=False)
     worker = worker_cls(queue)
     worker.run()
 

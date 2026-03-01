@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .config import DB_EPSILON, N_SUBCARRIERS
+from .config import DB_EPSILON, N_SUBCARRIERS, REMOVE_SUBCARRIER_INDEXES, BANDWIDTH_MHZ
 
 
 @dataclass
@@ -16,6 +16,7 @@ class ProcessedCSI:
     rssi: int
     seq: int
     magnitude_db: np.ndarray
+    magnitude_db_wo_np: np.ndarray # magnitude_db without nulls and pilot subcarriers
     phase_rad: np.ndarray
     timestamp: float
 
@@ -65,7 +66,7 @@ def csi_to_magnitude_db_and_phase(
     csi: np.ndarray,
     rssi: int,
     include_phase: bool = True,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray | None]:
     csi_row = np.asarray(csi).reshape(-1)
     csi_mag = np.abs(csi_row).astype(np.float32)
 
@@ -85,7 +86,8 @@ def csi_to_magnitude_db_and_phase(
 
     magnitude_row = csi_mag.copy()
     db_row = 20.0 * np.log10(csi_mag + DB_EPSILON)
+    db_row_wo_np = np.delete(db_row.copy(), REMOVE_SUBCARRIER_INDEXES[BANDWIDTH_MHZ])
     phase_deg_row = (
         np.angle(csi_row, deg=True).astype(np.float32) if include_phase else None
     )
-    return magnitude_row, db_row, phase_deg_row
+    return magnitude_row, db_row, db_row_wo_np, phase_deg_row

@@ -20,7 +20,7 @@ class ReceiverWorker:
     def __init__(
         self,
         consumer_queues: List[queue.Queue],
-        num_workers: int = 4,
+        num_workers: int = 2,
         raw_queue_maxsize: int = 1024,
     ):
         self.consumer_queues = consumer_queues

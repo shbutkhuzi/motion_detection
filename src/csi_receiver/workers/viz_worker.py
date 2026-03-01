@@ -10,7 +10,7 @@ from ..protocol import ProcessedCSI
 from .base import BaseWorker, SENTINEL
 
 # Number of trailing samples for fading effect
-TRAIL_LENGTH = 30
+TRAIL_LENGTH = 20
 
 
 class VizWorker(BaseWorker):
@@ -29,9 +29,9 @@ class VizWorker(BaseWorker):
         import pyqtgraph as pg
         from pyqtgraph.Qt import QtWidgets
 
-        pg.setConfigOptions(imageAxisOrder="row-major")
+        pg.setConfigOptions(imageAxisOrder="row-major", background="w", foreground="k")
         app = QtWidgets.QApplication([])
-        win = pg.GraphicsLayoutWidget(title="CSI Receiver", size=(1200, 600))
+        win = pg.GraphicsLayoutWidget(title="CSI Receiver", size=(800, 600))
         win.show()
 
         cmap = None
@@ -85,8 +85,8 @@ class VizWorker(BaseWorker):
         # Trailing samples for fading effect
         mag_trail: deque = deque(maxlen=TRAIL_LENGTH)
         phase_trail: deque = deque(maxlen=TRAIL_LENGTH)
-        mag_curves = [mag_plot.plot(pen="g") for _ in range(TRAIL_LENGTH)]
-        phase_curves = [phase_plot.plot(pen="c") for _ in range(TRAIL_LENGTH)]
+        mag_curves = [mag_plot.plot(pen=pg.mkPen("#1a6e1a", width=3)) for _ in range(TRAIL_LENGTH)]
+        phase_curves = [phase_plot.plot(pen=pg.mkPen("#0055aa", width=3)) for _ in range(TRAIL_LENGTH)]
 
         def update():
             # Drain queue, keep latest

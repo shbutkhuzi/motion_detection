@@ -46,11 +46,11 @@ def process_one_packet(data: bytes) -> Optional[ProcessedCSI]:
     )
     if BANDWIDTH_MHZ == 20:
         csi_complex[..., 60] = 0
-        # csi_complex[..., 60] = 0
+
     csi_flat = np.asarray(csi_complex).reshape(-1)
 
     try:
-        magnitude_row, db_row, phase_deg_row = csi_to_magnitude_db_and_phase(
+        magnitude_row, db_row, db_row_wo_np, phase_deg_row = csi_to_magnitude_db_and_phase(
             csi_flat, parsed["rssi"]
         )
     except ValueError:
@@ -63,6 +63,7 @@ def process_one_packet(data: bytes) -> Optional[ProcessedCSI]:
         rssi=parsed["rssi"],
         seq=parsed["seq"],
         magnitude_db=db_row.copy(),
+        magnitude_db_wo_np=db_row_wo_np.copy(),
         phase_rad=phase_rad,
         timestamp=time.perf_counter(),
     )
