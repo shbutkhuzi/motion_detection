@@ -39,7 +39,7 @@ class ReceiverWorker:
             print(f"Failed to bind to port {LISTEN_PORT}: {e}")
             return
 
-        print(f"Listening on port {LISTEN_PORT} for packets from {SOURCE_IP}...")
+        print(f"Listening on port {LISTEN_PORT} for packets from {SOURCE_IP} or 127.0.0.1...")
 
         while not self._stop.is_set():
             try:
@@ -49,7 +49,7 @@ class ReceiverWorker:
             except OSError:
                 break
 
-            if addr[0] != SOURCE_IP:
+            if addr[0] not in [SOURCE_IP, "127.0.0.1"]:
                 continue
 
             try:

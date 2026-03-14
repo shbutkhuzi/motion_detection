@@ -19,6 +19,8 @@ def _run_worker(worker_cls, queue: mp.Queue) -> None:
 
 def main() -> None:
     mp.freeze_support()
+    sys.stdout = os.fdopen(sys.stdout.fileno(), "w", buffering=1, closefd=False)
+    sys.stderr = os.fdopen(sys.stderr.fileno(), "w", buffering=1, closefd=False)
     print("Starting CSI Receiver...")
 
     # One queue per worker

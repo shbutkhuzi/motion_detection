@@ -6,6 +6,12 @@ from .stat_presence_worker import StatPresenceWorker
 from .viz_worker import VizWorker
 
 # Registry: add new worker classes here
-WORKERS = [VizWorker, PresenceWorker, StatPresenceWorker]
+WORKERS = [VizWorker, 
+            PresenceWorker, 
+            StatPresenceWorker]
 
-__all__ = ["BaseWorker", "VizWorker", "PresenceWorker", "StatPresenceWorker", "WORKERS", "SENTINEL"]
+__all__ = ["BaseWorker", "VizWorker", 
+           "PresenceWorker", 
+           "StatPresenceWorker", 
+           "RunningMetrics",
+           "WORKERS", "SENTINEL"]

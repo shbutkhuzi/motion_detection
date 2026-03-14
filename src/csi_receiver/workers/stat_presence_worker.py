@@ -7,6 +7,7 @@ from sklearn.covariance import LedoitWolf
 
 from ..protocol import ProcessedCSI
 from .base import BaseWorker, SENTINEL
+from .eval_metrics import RunningMetrics
 
 HIST_BINS = 200
 HIST_RANGE_MIN = 0.0
@@ -35,11 +36,15 @@ class StatPresenceWorker(BaseWorker):
         self._csi_var = 0.0
         self._rssi_var_exp = 0.0
         self._csi_var_exp = 0.0
+        self._csi_var_pred = 0.0
+        self._rssi_var_pred = 0.0
         self._RSSI_VAR_LOW_THRESHOLD = 0.1
         self._RSSI_VAR_HIGH_THRESHOLD = 0.3
         self._CSI_VAR_LOW_THRESHOLD = 0.25
         self._CSI_VAR_HIGH_THRESHOLD = 0.35
         self._mahalanobis_dist = 0.0
+
+        self._running_metrics = RunningMetrics()
 
     def run(self) -> None:
         """Qt event loop with timer-driven queue drain and histogram updates."""
@@ -248,23 +253,23 @@ class StatPresenceWorker(BaseWorker):
             iqr_bar.setOpts(height=[iqr])
 
             # Indicator circles
-            if self._rssi_var_exp > self._RSSI_VAR_HIGH_THRESHOLD:
+            if self._rssi_var_pred == 1:
                 rssi_indicator.setPen(GREEN_PEN)
                 rssi_indicator.setBrush(GREEN_BRUSH)
                 rssi_glow.setPen(GLOW_PEN)
                 rssi_glow.setBrush(pg.mkBrush("#22dd4440"))
-            elif self._rssi_var_exp < self._RSSI_VAR_LOW_THRESHOLD:
+            else:
                 rssi_indicator.setPen(GRAY_PEN)
                 rssi_indicator.setBrush(GRAY_BRUSH)
                 rssi_glow.setPen(pg.mkPen(None))
                 rssi_glow.setBrush(pg.mkBrush(None))
 
-            if self._csi_var_exp > self._CSI_VAR_HIGH_THRESHOLD:
+            if self._csi_var_pred == 1:
                 csi_indicator.setPen(GREEN_PEN)
                 csi_indicator.setBrush(GREEN_BRUSH)
                 csi_glow.setPen(GLOW_PEN)
                 csi_glow.setBrush(pg.mkBrush("#22dd4440"))
-            elif self._csi_var_exp < self._CSI_VAR_LOW_THRESHOLD:
+            else:
                 csi_indicator.setPen(GRAY_PEN)
                 csi_indicator.setBrush(GRAY_BRUSH)
                 csi_glow.setPen(pg.mkPen(None))
@@ -334,6 +339,13 @@ class StatPresenceWorker(BaseWorker):
             if len(self._csi_history) == self._CSI_HISTORY_LENGTH:
                 self.calculate_statistics()
 
+                if data.label is not None:
+                    self._running_metrics.update(data.label, self._csi_var_pred)
+                    print("-----------------> Analytical F1 Score: ", self._running_metrics.get_f1_score())
+                    print("-----------------> Analytical Accuracy: ", self._running_metrics.get_accuracy())
+                    print("-----------------> Analytical Precision: ", self._running_metrics.get_precision())
+                    print("-----------------> Analytical Recall: ", self._running_metrics.get_recall())
+
         finally:
             self._last_timestamp = now
 
@@ -355,7 +367,17 @@ class StatPresenceWorker(BaseWorker):
         self._rssi_var_exp = alpha * self._rssi_var + (1 - alpha) * self._rssi_var_exp
         self._csi_var_exp = alpha * self._csi_var + (1 - alpha) * self._csi_var_exp
 
-        print(f"RSSI var: {self._rssi_var:10.6f}   RSSI exp. var: {self._rssi_var_exp:10.6f}   CSI var: {self._csi_var:10.6f}   CSI exp. var: {self._csi_var_exp:10.6f}")
+        if self._rssi_var_exp > self._RSSI_VAR_HIGH_THRESHOLD:
+            self._rssi_var_pred = 1
+        elif self._rssi_var_exp < self._RSSI_VAR_LOW_THRESHOLD:
+            self._rssi_var_pred = 0
+
+        if self._csi_var_exp > self._CSI_VAR_HIGH_THRESHOLD:
+            self._csi_var_pred = 1
+        elif self._csi_var_exp < self._CSI_VAR_LOW_THRESHOLD:
+            self._csi_var_pred = 0
+
+        # print(f"RSSI var: {self._rssi_var:10.6f}   RSSI exp. var: {self._rssi_var_exp:10.6f}   CSI var: {self._csi_var:10.6f}   CSI exp. var: {self._csi_var_exp:10.6f}")
 
     def calculate_mahalanobis_dist(self, x_new: np.ndarray) -> float:
         """Calculate Mahalanobis distance for presence detection."""

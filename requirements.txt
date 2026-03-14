@@ -1,4 +1,5 @@
-numpy
-nexcsi
-pyqtgraph
-PyQt6
+numpy==1.26.4
+nexcsi==0.5.2
+pyqtgraph==0.14.0
+PyQt6==6.10.2
+tensorflow==2.20.0

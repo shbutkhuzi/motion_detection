@@ -85,8 +85,8 @@ class VizWorker(BaseWorker):
         # Trailing samples for fading effect
         mag_trail: deque = deque(maxlen=TRAIL_LENGTH)
         phase_trail: deque = deque(maxlen=TRAIL_LENGTH)
-        mag_curves = [mag_plot.plot(pen=pg.mkPen("#1a6e1a", width=3)) for _ in range(TRAIL_LENGTH)]
-        phase_curves = [phase_plot.plot(pen=pg.mkPen("#0055aa", width=3)) for _ in range(TRAIL_LENGTH)]
+        mag_curves = [mag_plot.plot(pen=pg.mkPen("#1a6e1a", width=1.5)) for _ in range(TRAIL_LENGTH)]
+        phase_curves = [phase_plot.plot(pen=pg.mkPen("#0055aa", width=1.5)) for _ in range(TRAIL_LENGTH)]
 
         def update():
             # Drain queue, keep latest

@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from ..config import DEVICE, BANDWIDTH_MHZ
+from ..config import DEVICE, BANDWIDTH_MHZ, REMOVE_SUBCARRIER_INDEXES
 from ..protocol import (
     ProcessedCSI,
     csi_to_magnitude_db_and_phase,
@@ -36,7 +36,7 @@ def process_one_packet(data: bytes) -> Optional[ProcessedCSI]:
         parsed = read_binary(data)
         # print("Processing packet: ", parsed["seq"])
     except ValueError:
-        # print("ValueError: ", data)
+        print("ValueError when reading binary data")
         return None
 
     decoder_obj = _get_decoder()
@@ -48,6 +48,7 @@ def process_one_packet(data: bytes) -> Optional[ProcessedCSI]:
         csi_complex[..., 60] = 0
 
     csi_flat = np.asarray(csi_complex).reshape(-1)
+    csi_flat_wo_np = np.delete(csi_flat, REMOVE_SUBCARRIER_INDEXES[BANDWIDTH_MHZ])
 
     try:
         magnitude_row, db_row, db_row_wo_np, phase_deg_row = csi_to_magnitude_db_and_phase(
@@ -60,10 +61,12 @@ def process_one_packet(data: bytes) -> Optional[ProcessedCSI]:
 
     return ProcessedCSI(
         csi=csi_flat.copy(),
+        csi_wo_np=csi_flat_wo_np.copy(),
         rssi=parsed["rssi"],
         seq=parsed["seq"],
         magnitude_db=db_row.copy(),
         magnitude_db_wo_np=db_row_wo_np.copy(),
         phase_rad=phase_rad,
         timestamp=time.perf_counter(),
+        label=parsed["label"],
     )

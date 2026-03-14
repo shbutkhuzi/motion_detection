@@ -13,12 +13,14 @@ class ProcessedCSI:
     """Processed CSI data suitable for IPC between receiver and workers."""
 
     csi: np.ndarray  # complex, shape (64,)
+    csi_wo_np: np.ndarray # csi without nulls and pilot subcarriers
     rssi: int
     seq: int
     magnitude_db: np.ndarray
     magnitude_db_wo_np: np.ndarray # magnitude_db without nulls and pilot subcarriers
     phase_rad: np.ndarray
     timestamp: float
+    label: int | None
 
 
 def read_binary(data: bytes) -> dict:
@@ -34,8 +36,8 @@ def read_binary(data: bytes) -> dict:
         HEADER_FMT, data, 0
     )
 
-    if magic != 0x1111:
-        raise ValueError(f"Invalid magic value: 0x{magic:04x}, expected 0x1111")
+    if magic not in [0x1111, 0x1112, 0x1113]:
+        raise ValueError(f"Invalid magic value: 0x{magic:04x}, expected 0x1111, 0x1112, 0x1113")
 
     remaining = len(data) - HEADER_SIZE
     if remaining != (N_SUBCARRIERS * 4):
@@ -59,6 +61,7 @@ def read_binary(data: bytes) -> dict:
         "cvr": cvr,
         "csi_len": csi_len,
         "csi": csi,
+        "label": 0 if magic == 0x1112 else 1 if magic == 0x1113 else None,
     }
 
 
