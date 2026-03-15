@@ -39,7 +39,7 @@ A bash script run on the Raspberry Pi **after Nexmon CSI is installed**. It conf
 3. Installs firmware, reloads the interface, and configures `nexutil`.
 4. Optionally runs `tcpdump -i wlan0 dst port 5500` to record CSI traffic.
 
-**Note:** The script does not include packet deduplication or forwarding. Nexmon can emit duplicate UDP packets for the same CSI frame. To deduplicate and forward traffic to the laptop, one has to add **nftables rules** on the Raspberry Pi.
+**Note:** The script does not include packet deduplication or forwarding. To deduplicate and forward traffic to the laptop, one has to add **nftables rules** on the Raspberry Pi.
 
 ---
 
